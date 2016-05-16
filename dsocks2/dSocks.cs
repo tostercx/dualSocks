@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 namespace dsocks2
 {
     // crappy socks5 wrapper for a socket
-    class Socks5
+    class dSocks
     {
         private Socket socket;
         private const int ver = 5;
@@ -23,7 +23,7 @@ namespace dsocks2
         public int status { private set; get; }
 
         // client setup [user:pass@]socks.addr[:port]
-        public Socks5(string con)
+        public dSocks(string con)
         {
             var match = new Regex("^(?:(.*?):(.*?)@)?(.*?)(?::(\\d+))?$").Match(con).Groups;
 
@@ -34,13 +34,13 @@ namespace dsocks2
         }
 
         // server setup
-        public Socks5(Socket sock)
+        public dSocks(Socket sock)
         {
             socket = sock;
         }
 
         // evil clones?
-        public Socks5(Socks5 mommy, Socket daddy)
+        public dSocks(dSocks mommy, Socket daddy)
         {
             xUser = mommy.xUser;
             xPass = mommy.xPass;

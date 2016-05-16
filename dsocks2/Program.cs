@@ -33,15 +33,15 @@ namespace dsocks2
             Console.WriteLine("Done");
         }
 
-        static bool ParseArgs(string[] args, out List<Socks5> chain)
+        static bool ParseArgs(string[] args, out List<dSocks> chain)
         {
-            chain = new List<Socks5>();
+            chain = new List<dSocks>();
             if (args.Length < 1)
                 return false;
 
             for (var i = 0; i < args.Length; i++)
             {
-                var sock = new Socks5(args[i]);
+                var sock = new dSocks(args[i]);
                 if (sock == null)
                     return false;
 
@@ -62,7 +62,7 @@ namespace dsocks2
             var listenAddr = "0.0.0.0";
             var listenPort = 1080;
 
-            List<Socks5> chain = null;
+            List<dSocks> chain = null;
 
             if (!ParseArgs(args, out chain))
             {
@@ -79,7 +79,7 @@ namespace dsocks2
             {
                 Console.WriteLine("Accepting connection");
                 var client = listener.AcceptSocket();
-                var clientSocks = new Socks5(client);
+                var clientSocks = new dSocks(client);
 
                 new Thread(() =>
                 {
@@ -101,7 +101,7 @@ namespace dsocks2
                         {
                             for (var i = 0; i < chain.Count; i++)
                             {
-                                var serverSocks = new Socks5(chain[i], server);
+                                var serverSocks = new dSocks(chain[i], server);
                                 if (!serverSocks.ClientInit(server)) Console.WriteLine("Jump [{0}] at {1} refused socks connection", i + 1, serverSocks.xHost);
                                 else
                                 {
