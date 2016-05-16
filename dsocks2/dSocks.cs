@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -10,6 +10,8 @@ namespace dsocks2
     {
         private Socket socket;
         private const int ver = 5;
+
+        public byte[] lastRequest { private set; get; }
 
         // proxy settings
         public string xHost { private set; get; }
@@ -71,12 +73,14 @@ namespace dsocks2
             return buf;
         }
 
-        private string ReadDNS()
+        private string ReadDNS(ref List<byte> rq)
         {
             try
             {
                 var len = Read(1);
+                rq.Add(len[0]);
                 var buf = Read(len[0]);
+                rq.AddRange(buf);
                 return Encoding.ASCII.GetString(buf);
             }
             catch { }
@@ -84,9 +88,10 @@ namespace dsocks2
             return "";
         }
 
-        private int ReadPort()
+        private int ReadPort(ref List<byte> rq)
         {
             var buf = Read(2);
+            rq.AddRange(buf);
             return (buf == null) ? -1 : (int)((buf[0] << 8) | buf[1]);
         }
 
@@ -165,9 +170,13 @@ namespace dsocks2
 
         public bool ParseRequest()
         {
+            var body = new List<byte>();
+
             var buf = Read(4);
             if (buf == null || buf[0] != ver)
                 return false;
+
+            body.AddRange(buf);
             
             status = buf[1];
 
@@ -175,25 +184,28 @@ namespace dsocks2
             {
                 case 1:
                     // dummy
-                    Read(4);
+                    buf = Read(4);
+                    body.AddRange(buf);
                     break;
 
                 case 3:
-                    domain = ReadDNS();
+                    domain = ReadDNS(ref body);
                     if (domain == "")
                         return false;
                     break;
 
                 case 4:
                     // dummy
-                    Read(16);
+                    buf = Read(16);
+                    body.AddRange(buf);
                     break;
             }
 
-            port = ReadPort();
+            port = ReadPort(ref body);
             if (port == -1)
                 return false;
 
+            lastRequest = body.ToArray();
             return true;
         }
     }

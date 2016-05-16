@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -33,20 +32,14 @@ namespace dsocks2
             Console.WriteLine("Done");
         }
 
-        static bool ParseArgs(string[] args, out List<dSocks> chain)
+        static bool ParseArgs(string[] args, out dChain chain)
         {
-            chain = new List<dSocks>();
+            chain = new dChain();
             if (args.Length < 1)
                 return false;
 
             for (var i = 0; i < args.Length; i++)
-            {
-                var sock = new dSocks(args[i]);
-                if (sock == null)
-                    return false;
-
-                chain.Add(sock);
-            }
+                chain.Add(args[i]);
 
             return true;
         }
@@ -62,7 +55,7 @@ namespace dsocks2
             var listenAddr = "0.0.0.0";
             var listenPort = 1080;
 
-            List<dSocks> chain = null;
+            dChain chain = null;
 
             if (!ParseArgs(args, out chain))
             {
@@ -83,61 +76,32 @@ namespace dsocks2
 
                 new Thread(() =>
                 {
-                    if (clientSocks.ServerInit() && clientSocks.ParseRequest())
+                    if (clientSocks.ServerInit() && clientSocks.ParseRequest() && clientSocks.ServerReply(0))
                     {
                         Console.WriteLine("Target {0} {1}", clientSocks.domain, clientSocks.port);
 
                         Console.WriteLine("Connecting...");
-                        var server = chain[0].Connect();
-                        var status = 0;
-                        var fail = true;
+                        var server = chain.Connect();
 
                         if (!server.Connected)
                         {
-                            Console.WriteLine("Jump [{0}] at {1} is unreachable", 1, chain[0].xHost);
-                            status = 4;
-                        }
-                        else
-                        {
-                            for (var i = 0; i < chain.Count; i++)
-                            {
-                                var serverSocks = new dSocks(chain[i], server);
-                                if (!serverSocks.ClientInit(server)) Console.WriteLine("Jump [{0}] at {1} refused socks connection", i + 1, serverSocks.xHost);
-                                else
-                                {
-                                    var last = (i == chain.Count - 1);
-                                    var host = last ? clientSocks.domain : chain[i + 1].xHost;
-                                    var port = last ? clientSocks.port : chain[i + 1].xPort;
-                                    
-                                    fail = !serverSocks.ClientConnect(host, port);
-                                    status = serverSocks.status;
-                                    
-                                    if (fail)
-                                    {
-                                        Console.WriteLine("Jump [{0}] at {1} is unreachable", i + 2, host);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        
-                        if (!clientSocks.ServerReply(status))
-                        {
-                            Console.WriteLine("Client went away");
-                            fail = true;
-                        }
-
-                        if (fail)
-                        {
+                            Console.WriteLine("Couldn't connect to server");
                             client.Close();
-                            server.Close();
                         }
                         else
                         {
                             Console.WriteLine("OK");
-                            fail = false;
-                            Task.Factory.StartNew(() => Pipe(client, server));
-                            Task.Factory.StartNew(() => Pipe(server, client));
+                            Task.Factory.StartNew(() =>
+                            {
+                                chain.Push(server);
+                                chain.PushRaw(server, clientSocks.lastRequest);
+                                Pipe(client, server);
+                            });
+                            Task.Factory.StartNew(() =>
+                            {
+                                chain.Pull(server);
+                                Pipe(server, client);
+                            });
                         }
                     }
                     else

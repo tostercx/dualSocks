@@ -43,9 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="dChain.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Socks5.cs" />
+    <Compile Include="dSocks.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
