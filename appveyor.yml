@@ -1,0 +1,12 @@
+version: 1.0.0.{build}
+shallow_clone: true
+
+platform: Any CPU
+configuration: Release
+
+build:
+  project: dsocks2.sln
+  verbosity: minimal
+
+on_success:
+  - ps: Push-AppveyorArtifact "dsocks2\bin\Release\dsocks2.exe"
