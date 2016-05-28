@@ -32,9 +32,8 @@ namespace dsocks2
             Console.WriteLine("Done");
         }
 
-        static bool ParseArgs(string[] args, out dChain chain)
+        static bool ParseArgs(string[] args, ref dChain chain)
         {
-            chain = new dChain();
             if (args.Length < 1)
                 return false;
 
@@ -54,10 +53,11 @@ namespace dsocks2
         {
             var listenAddr = "0.0.0.0";
             var listenPort = 1080;
+            var socketTimeout = 5000;
 
-            dChain chain = null;
+            var chain = new dChain(socketTimeout);
 
-            if (!ParseArgs(args, out chain))
+            if (!ParseArgs(args, ref chain))
             {
                 PrintHelp();
                 return;

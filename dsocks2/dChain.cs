@@ -18,6 +18,13 @@ namespace dsocks2
         private string firstHost;
         private int firstPort;
 
+        private int socketTimeout;
+
+        public dChain(int timeout)
+        {
+            socketTimeout = timeout;
+        }
+
         // todo: check for invalid strings
         // [user:pass@]socks.addr[:port]
         public bool Add(string con)
@@ -77,7 +84,11 @@ namespace dsocks2
             if (firstHost == null)
                 return null;
 
-            return new TcpClient(firstHost, firstPort).Client;
+            var socket = new TcpClient(firstHost, firstPort).Client;
+            socket.ReceiveTimeout = socketTimeout;
+            socket.SendTimeout = socketTimeout;
+
+            return socket;
         }
 
         public bool PushRaw(Socket sock, byte[] msg)
