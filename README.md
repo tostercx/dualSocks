@@ -11,7 +11,7 @@ Listens on all interfaces on port 1080 by default
 # CI Builds
 | AppVeyor | Win32 binaries |
 |:--------:|:--------------:|
-| [![Build status]https://ci.appveyor.com/api/projects/status/dnm5rjry66ydb9u9/branch/master?svg=true)](https://ci.appveyor.com/project/tostercx/dualSocks/branch/master) | [check here](https://ci.appveyor.com/project/tostercx/dualSocks/branch/master/artifacts) |
+| [![Build status](https://ci.appveyor.com/api/projects/status/dnm5rjry66ydb9u9/branch/master?svg=true)](https://ci.appveyor.com/project/tostercx/dualsocks/branch/master) | [check here](https://ci.appveyor.com/project/tostercx/dualSocks/branch/master/artifacts) |
 
 # Todo
 * Add basic command line options for configuration
